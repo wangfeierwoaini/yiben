@@ -11,7 +11,7 @@
         </el-row>
       </header>
       <main class="el-main" style="height: 80%">
-        <el-table ref="multipleTable" :data="fetchData()" border style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table ref="multipleTable" :data="videoList" border style="width: 100%">
           <el-table-column type="selection" style="width: 2%" />
           <el-table-column prop="id" label="序号" style="width: 5%" />
           <el-table-column prop="videoName" label="视频名称" style="width: 10%" />
@@ -19,7 +19,7 @@
           <el-table-column prop="videoEwm" label="视频二维码" style="width: 10%" />
           <el-table-column prop="uploadTime" label="上传时间" style="width: 10%" />
           <el-table-column ref="multipleTable" :data="videoData" label="操作" width="180">
-            <el-button v-model="videoData.PackingId" size="small" round @click="updateVideo1=true">编辑</el-button>
+            <el-button v-model="videoData.id" size="small" round @click="updateVideo1=true">编辑</el-button>
             <el-button size="small" prop="PackingId" type="danger" @click="deleteVideo(videoData.id)">删除</el-button>
           </el-table-column>
         </el-table>
@@ -61,11 +61,12 @@
         </el-dialog></main>
       <footer class="el-footer" style="float: right ; height: 10%">
         <el-pagination
-          :current-page="currentPage4"
-          :page-sizes="[10, 20, 30, 40]"
-          :page-size="10"
+          :page-sizes="[7 , 14 , 28 ,56]"
+          :page-size="size"
+          :current-page="pn"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="400"
+          background
+          :total="totalElements"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
@@ -110,32 +111,40 @@
 export default {
   data() {
     return {
-      currentPage1: 5,
-      currentPage2: 5,
-      currentPage3: 5,
-      currentPage4: 4,
+      totalElements: '',
+      page: 1,
+      size: 7,
+      total: 0,
       input: '',
-      videoData: [
-        { PackingId: 1, videoName: '认识车辆1', videoUrl: 'http:25.34.122.23/video/1.mp4', videoEwm: '二维码', uploadTime: '2021-05-23', updateTime: '2021-05-23' },
-        { PackingId: 2, videoName: '认识车辆2', videoUrl: 'http:25.34.122.23/video/2.mp4', videoEwm: '二维码', uploadTime: '2021-05-23', updateTime: '2021-05-23' },
-        { PackingId: 3, videoName: '认识车辆3', videoUrl: 'http:25.34.122.23/video/3.mp4', videoEwm: '二维码', uploadTime: '2021-05-23', updateTime: '2021-05-23' },
-      ],
+      videoData: [],
       addVideoFrom: {
         videoName: '',
         videoUrl: ''
       },
+      videoList: [],
       // 控制添加用户对话框的显示与隐藏，默认为隐藏
       addVideo: false,
       updateVideo1: false
     }
   },
-  created() {
+  mounted() {
     this.fetchData()
   },
   methods: {
-    fetchData() {
-      this.$axios.get('http://192.168.31.117:7879/video/allVideo').then(function(res) {
-        this.fetchData(
+    fetchData: function() {
+      const that = this
+      this.$axios.get('http://192.168.101.8:7879/video/allVideo', {
+        params: {
+          pn: this.page,
+          size: this.size
+        }}).then(function(res) {
+        // eslint-disable-next-line eqeqeq
+        if (res.data.code == '200') {
+          that.videoList = res.data.data.content
+          that.totalElements = res.data.data.totalElements
+          that.page = res.data.data.number
+          that.size = res.data.data.size
+        }
       })
     },
     saveVideo: function() {
@@ -143,33 +152,11 @@ export default {
       const data = new FormData()
       data.append('videoName', this.addVideoFrom.videoName)
       data.append('videoUrl', this.addVideoFrom.videoUrl)
-      this.$axios.post('http://192.168.31.117:7879/video//saveVideo', data).then(function(res) {
-        // eslint-disable-next-line eqeqeq
-        if (res.data.code == '404') {
-          alert('用户不存在')
-          // eslint-disable-next-line eqeqeq
-        } else if (res.data.code == '300') {
-          alert('登录失败，账号或密码错误')
-          // eslint-disable-next-line eqeqeq
-        } else if (res.data.code == '200') {
+      this.$axios.post('http://192.168.101.8:7879/video/saveVideo', data).then(function(res) {
           _this.$router.push(
             '/find')
-        }
       })
     },
-    /* addVido(){
-      this.$alert('这是一段内容', '新增视频', {
-        cancelButtonText: '取消',
-        confirmButtonText: '确定',
-        callback: action => {
-          this.$message({
-            type: 'info',
-            message: `action: ${ action }`
-          });
-        }
-      });
-
-    },*/
     deleteVideo() {
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -187,11 +174,33 @@ export default {
         })
       })
     },
-    handleSizeChange(val) {
-      console.log(`每页 ${val} 条`)
+    handleCurrentChange (page) {
+      this.$axios
+        .get('http://192.168.101.8:7879/video/allVideo', {
+          params: {
+            pn: page,
+            size: this.size
+          }
+        }).then(res => {
+        this.videoList = res.data.data.content
+        this.total = res.data.data.totalElements
+        this.page = res.data.data.number + 1
+        this.size = res.data.data.size
+      })
     },
-    handleCurrentChange(val) {
-      console.log(`当前页: ${val}`)
+    handleSizeChange (size) {
+      this.$axios
+        .get('http://192.168.101.8:7879/video/allVideo', {
+          params: {
+            pn: 1,
+            size: size
+          }
+        }).then(res => {
+        this.videoList = res.data.data.content
+        this.total = res.data.data.totalElements
+        this.page = res.data.data.number
+        this.size = res.data.data.size
+      })
     },
     // 监听添加用户对话框的关闭事件
     addVideoClosed() {
@@ -205,9 +214,6 @@ export default {
   &-container {
     margin: 30px;
   }
-  /*&-text {
-    font-size: 30px;
-    line-height: 46px;
-  }*/
+
 }
 </style>
