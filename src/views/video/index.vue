@@ -16,25 +16,33 @@
           <el-table-column prop="id" label="序号" style="width: 5%" />
           <el-table-column prop="videoName" label="视频名称" style="width: 10%" />
           <el-table-column prop="videoUrl" label="视频链接" style="width: 20%" />
-          <el-table-column prop="videoEwm" label="视频二维码" style="width: 10%" />
+          <el-table-column prop="videoEwm" label="视频二维码" style="width: 20%">
+          <!-- 图片的显示 -->
+          <template   slot-scope="scope">
+            <img :src="scope.row.videoEwm" min-width="70" height="70"/>
+          </template>
+          </el-table-column>
           <el-table-column prop="uploadTime" label="上传时间" style="width: 10%" />
-          <el-table-column ref="multipleTable" :data="videoData" label="操作" width="180">
-            <el-button v-model="videoData.id" size="small" round @click="updateVideo1=true">编辑</el-button>
-            <el-button size="small" prop="PackingId" type="danger" @click="deleteVideo(videoData.id)">删除</el-button>
+          <el-table-column  label="操作" width="180">
+            <template slot-scope="scope">
+              <el-button v-model="videoList" size="small" round @click="scope.row.id">修改</el-button>
+              <el-button size="small"  type="danger" @click="deleteIdVideo(scope.row.id)">删除</el-button>
+            </template>
+
           </el-table-column>
         </el-table>
-        <!--编辑提示框-->
+        <!--修改提示框-->
         <el-dialog
           title="修改视频"
-          :visible.sync="updateVideo1"
+          :visible.sync="updateVideo"
           width="50%"
           center
           @close="addVideoClosed"
         >
           <!-- 内容的主体区域 -->
-          <el-form ref="addVideoRef" :model="addVideoFrom" label-width="70px">
-            <el-form-item label="序号" prop="videoName">
-              <el-input v-model="videoData.PackingId" />
+          <el-form ref="updateVideo" :model="updeteVideo" label-width="70px">
+            <el-form-item label="视频名称" prop="videoName">
+              <el-input v-model="videoData.videoName" />
             </el-form-item>
             <el-form-item label="视频" prop="Video">
               <el-upload
@@ -49,7 +57,11 @@
               </el-upload>
             </el-form-item>
           </el-form>
-
+          <!-- 底部区域 -->
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="addVideo = false">取 消</el-button>
+            <el-button type="primary" @click="saveVideo">确 定</el-button>
+          </span>
           <!-- 删除提示框 -->
           <el-dialog title="提示" :visible.sync="delVisible" width="300px" center>
             <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
@@ -61,7 +73,7 @@
         </el-dialog></main>
       <footer class="el-footer" style="float: right ; height: 10%">
         <el-pagination
-          :page-sizes="[7 , 14 , 28 ,56]"
+          :page-sizes="[5 , 10 , 15 ,20]"
           :page-size="size"
           :current-page="pn"
           layout="total, sizes, prev, pager, next, jumper"
@@ -74,22 +86,22 @@
     </section>
     <!-- 新增视频的对话框 -->
     <el-dialog
-      title="新增视频"
+      title="添加视频"
       :visible.sync="addVideo"
-      width="50%"
+      v-loading="loading"
       center
+      element-loading-text="拼命上传中"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+      element-loading-spinner="el-icon-loading"
       @close="addVideoClosed"
     >
       <!-- 内容的主体区域 -->
       <el-form ref="addVideoRef" :model="addVideoFrom" label-width="70px">
-        <el-form-item label="视频名称" prop="videoName">
-          <el-input v-model="addVideoFrom.videoName" />
-        </el-form-item>
         <el-form-item label="视频" prop="Video">
           <el-upload
             class="upload-demo"
             drag
-            action="https://jsonplaceholder.typicode.com/posts/"
+            action= saveVideo
             multiple
           >
             <i class="el-icon-upload" />
@@ -113,7 +125,7 @@ export default {
     return {
       totalElements: '',
       page: 1,
-      size: 7,
+      size: 5,
       total: 0,
       input: '',
       videoData: [],
@@ -121,7 +133,13 @@ export default {
         videoName: '',
         videoUrl: ''
       },
+      updateVideoFrom: {
+        videoName: '',
+        videoUrl: ''
+      },
       videoList: [],
+
+      // 没用
       // 控制添加用户对话框的显示与隐藏，默认为隐藏
       addVideo: false,
       updateVideo1: false
@@ -133,7 +151,7 @@ export default {
   methods: {
     fetchData: function() {
       const that = this
-      this.$axios.get('http://192.168.101.8:7879/video/allVideo', {
+      this.$axios.get('http://127.0.0.1:7879/video/allVideo', {
         params: {
           pn: this.page,
           size: this.size
@@ -152,9 +170,39 @@ export default {
       const data = new FormData()
       data.append('videoName', this.addVideoFrom.videoName)
       data.append('videoUrl', this.addVideoFrom.videoUrl)
-      this.$axios.post('http://192.168.101.8:7879/video/saveVideo', data).then(function(res) {
+      this.$axios.post('http://127.0.0.1:7879/video/saveVideo', data).then(function(res) {
           _this.$router.push(
             '/find')
+      })
+    },
+    deleteIdVideo(id) {
+      console.log(id);
+      this.$confirm('此操作将永久删除'+id+'该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.delete('http://127.0.0.1:7879/video/deleteIdVideo', {
+          params:{
+            id:id
+          }
+        }).then( (res)=> {
+          if (res.data.code == '410'){
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            })
+            this.lnitializationData()//请求成功后调用初始化函数，vue会自动更新dmo
+          }else if(res.data.code == '403'){
+            this.$message.error({
+              message: '删除失败!'
+            })
+          }
+        })}).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
       })
     },
     deleteVideo() {
@@ -176,7 +224,7 @@ export default {
     },
     handleCurrentChange (page) {
       this.$axios
-        .get('http://192.168.101.8:7879/video/allVideo', {
+        .get('http://127.0.0.1:7879/video/allVideo', {
           params: {
             pn: page,
             size: this.size
@@ -190,7 +238,7 @@ export default {
     },
     handleSizeChange (size) {
       this.$axios
-        .get('http://192.168.101.8:7879/video/allVideo', {
+        .get('http://127.0.0.1:7879/video/allVideo', {
           params: {
             pn: 1,
             size: size
@@ -205,6 +253,20 @@ export default {
     // 监听添加用户对话框的关闭事件
     addVideoClosed() {
       this.$refs.addVideoRef.resetFields()
+    },
+    lnitializationData() {//初始化页面数据
+      this.$axios
+        .get('http://127.0.0.1:7879/video/allVideo', {
+          params: {
+            pn: this.page,
+            size: this.size
+          }
+        }).then(res => {
+        this.videoList = res.data.data.content
+        this.total = res.data.data.totalElements
+        this.page = res.data.data.number
+        this.size = res.data.data.size
+      })
     }
   }
 }
