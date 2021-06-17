@@ -22,6 +22,7 @@ public enum ResultEnum {
     ERROR_SAVE(403,"添加失败"),
     ERROR_UPDATE(403,"修改失败"),
     ERROR_DELETE(403,"删除失败"),
+    ERROR_SAVEVIDEO(403,"上传失败，请选择文件"),
     ERROR_NOT_VIDEO(401,"视频不存在"),
     ERROR_SAVE_VIDEO(401,"视频不能为空")
 

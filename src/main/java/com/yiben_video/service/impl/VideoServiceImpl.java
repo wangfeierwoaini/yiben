@@ -70,7 +70,12 @@ public class VideoServiceImpl extends BaseServiceImpl implements VideoService {
 
     @Override
     public Result deleteVideoId(Integer id) {
-        return null;
+        if (!get().contains(id)){
+            return result.error(ResultEnum.ERROR_DELETE);
+        }else {
+            videoDao.deleteById(id);
+            return result.success(ResultEnum.SUCCESS_DELETE);
+        }
     }
 
 

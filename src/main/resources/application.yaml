@@ -3,6 +3,13 @@ server:
   tomcat:
     max-swallow-size:
 spring:
+  mvc:
+    static-path-pattern: D:/upload/**
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10GB
+      max-request-size: 10GB
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/video?useUnicode=true&characterEncoding=utf-8
     username: root
@@ -23,3 +30,12 @@ knife4j:
 swagger:
     production=true
 debug: false
+file:
+  path: file/**    #文件访问路径
+  address:  D:/videos/  #文件保存路径
+#文件上传目录（注意Linux和Windows上的目录结构不同）
+#uploadFolder=/root/upload/
+#特别要注意此位置
+#uploadFolder=D:/upload/
+#本地文件
+url: http://192.168.31.117:7879/file/

@@ -20,7 +20,6 @@ import java.util.List;
 @Slf4j
 @RestController
 @Api(tags = "用户登录")
-@CrossOrigin
 @RequestMapping("/user")
 public class LoginController extends BaseController{
     Result result =new Result();
