@@ -22,7 +22,3 @@ ${AnsiColor.BRIGHT_GREEN}
                            `=---='
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                // 佛祖保佑 永不宕机 永无BUG //
-
-${AnsiColor.BLACK}
-Application Version: ${application.version}${application.formatted-version}
-Spring Boot Version: ${spring-boot.version}${spring-boot.formatted-version}

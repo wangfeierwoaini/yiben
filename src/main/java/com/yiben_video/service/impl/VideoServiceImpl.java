@@ -43,7 +43,11 @@ public class VideoServiceImpl extends BaseServiceImpl implements VideoService {
             return result.success(ResultEnum.SUCCESS_INQUIRE,videoEntity);
         }
     }
-
+    @Override
+    public VideoEntity FindOneVideo(Integer id) {
+         VideoEntity videoEntity = videoDao.findById(id).get();
+        return videoEntity;
+    }
     @Override
     public void saveVideo(VideoEntity videoEntity1) {
         videoDao.save(videoEntity1);

@@ -12,6 +12,7 @@ import java.util.List;
  */
 public interface VideoService {
     Result getFindOneVideo(Integer id);
+    VideoEntity FindOneVideo(Integer id);
 
 
     void saveVideo(VideoEntity videoEntity1);

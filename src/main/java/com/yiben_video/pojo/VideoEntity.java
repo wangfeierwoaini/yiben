@@ -1,5 +1,7 @@
 package com.yiben_video.pojo;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -10,6 +12,7 @@ import java.util.Objects;
  * @emai 936886169@qq.com
  */
 @Entity
+@Data
 @Table(name = "videotable", schema = "video", catalog = "")
 public class VideoEntity {
     private int id;

@@ -13,10 +13,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class FilePathConfig implements WebMvcConfigurer {
 
-    @Value("${file.path}")
+    @Value("${video.path}")
     private String path;
 
-    @Value("${file.address}")
+    @Value("${video.address}")
     private String address;
 
     @Override
